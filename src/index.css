@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "proxima-nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  button {
+    @apply cursor-pointer
+  }
+
+  select:focus {
+    @apply !ring-0 !outline-0
+  }
+}
+
+/* Custom Scrollbar for Admin Panel */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
