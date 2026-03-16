@@ -224,7 +224,7 @@ export default function Orders() {
 
       {/* Orders Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-visible">
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto min-h-[150px]">
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -331,7 +331,7 @@ export default function Orders() {
             </tbody>
           </table>
         </div>
-        {filteredOrders.length === 0 && (
+        {!isLoading && filteredOrders.length === 0 && (
           <div className="p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingCart className="w-8 h-8 text-gray-300" />

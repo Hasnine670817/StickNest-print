@@ -13,14 +13,63 @@ export default function Checkout() {
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [address, setAddress] = useState('');
   const [zip, setZip] = useState('');
-  // Ensure paymentMethod is correctly managed
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'credit-card'>('credit-card');
+  
+  // Coupon state
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const discount = cartItems.length > 1 ? subtotal * 0.1 : 0;
-  const total = subtotal - discount;
+  const multiDesignDiscount = cartItems.length > 1 ? subtotal * 0.1 : 0;
+  
+  // Calculate coupon discount
+  const couponDiscount = appliedCoupon ? (subtotal - multiDesignDiscount) * (appliedCoupon.discount / 100) : 0;
+  
+  const total = subtotal - multiDesignDiscount - couponDiscount;
 
   const isFormValid = email.includes('@') && fullName.trim() !== '' && address.trim() !== '' && zip.trim() !== '';
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+    
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponInput.trim().toUpperCase())
+        .eq('is_active', true)
+        .single();
+        
+      if (error || !data) {
+        setCouponError('Invalid or inactive coupon code.');
+        setAppliedCoupon(null);
+        return;
+      }
+
+      // Check expiry
+      if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+        setCouponError('This coupon has expired.');
+        setAppliedCoupon(null);
+        return;
+      }
+
+      setAppliedCoupon({
+        code: data.code,
+        discount: data.discount_percentage
+      });
+      setCouponInput('');
+    } catch (err) {
+      console.error(err);
+      setCouponError('Error validating coupon.');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!isFormValid) {
@@ -33,11 +82,12 @@ export default function Checkout() {
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          user_id: user?.id || null, // Might need to be UUID if logged in, else null
+          user_id: user?.id || null,
           total_price: total,
           status: 'pending',
           shipping_address: address,
-          payment_method: paymentMethod
+          payment_method: paymentMethod,
+          applied_coupon: appliedCoupon?.code || null
         }])
         .select()
         .single();
@@ -350,15 +400,53 @@ export default function Checkout() {
               </div>
 
               <div className="border-t border-gray-200 pt-4 space-y-2">
-                {discount > 0 && (
+                {/* Coupon Input */}
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Coupon code"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      className="flex-1 h-[40px] border border-gray-300 rounded px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#f37021]"
+                    />
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponInput.trim()}
+                      className="px-4 h-[40px] bg-gray-800 text-white text-sm font-bold rounded hover:bg-black disabled:opacity-50 transition-colors"
+                    >
+                      {isApplyingCoupon ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-red-500 text-[11px] mt-1 font-bold">{couponError}</p>}
+                  {appliedCoupon && (
+                    <div className="flex items-center justify-between mt-2 bg-green-50 border border-green-100 p-2 rounded">
+                      <span className="text-green-700 text-[12px] font-bold">Code {appliedCoupon.code} applied!</span>
+                      <button 
+                        onClick={() => setAppliedCoupon(null)}
+                        className="text-green-700 hover:text-green-900"
+                      >
+                        <Lock className="w-3 h-3 rotate-45" /> {/* Using Lock as a close icon for now or just X if available */}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {multiDesignDiscount > 0 && (
                   <div className="flex justify-between text-[14px]">
                     <span className="text-[#2e7d32] font-bold">Discount for multiple designs</span>
-                    <span className="text-[#2e7d32] font-bold">-${Math.round(discount)}</span>
+                    <span className="text-[#2e7d32] font-bold">-${Math.round(multiDesignDiscount)}</span>
+                  </div>
+                )}
+                {appliedCoupon && (
+                  <div className="flex justify-between text-[14px]">
+                    <span className="text-[#2e7d32] font-bold">Coupon ({appliedCoupon.code})</span>
+                    <span className="text-[#2e7d32] font-bold">-${Math.round(couponDiscount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[14px]">
                   <span className="text-[#333333]">Subtotal</span>
-                  <span className="text-[#333333]">${Math.round(total)}</span>
+                  <span className="text-[#333333]">${Math.round(subtotal - multiDesignDiscount - couponDiscount)}</span>
                 </div>
               </div>
 

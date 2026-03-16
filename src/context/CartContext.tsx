@@ -70,6 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = async (item: Omit<CartItem, 'id'>) => {
     if (!user) return;
+    setIsCartLoading(true);
     const { data, error } = await supabase
       .from('cart_items')
       .insert([{
@@ -84,10 +85,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }])
       .select()
       .single();
+    
     if (error) {
       console.error('Error adding to cart:', error);
+      setIsCartLoading(false);
       return;
     }
+    
     if (data) {
       const newItem = {
         id: data.id,
@@ -101,6 +105,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       };
       setCartItems(prev => [...prev, newItem as CartItem]);
     }
+    setIsCartLoading(false);
   };
 
   const updateQuantity = async (id: string, quantity: number) => {

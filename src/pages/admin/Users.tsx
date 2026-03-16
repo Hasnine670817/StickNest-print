@@ -116,13 +116,6 @@ export default function Users() {
           <p className="text-sm text-gray-500 mt-1">View and manage your customer base</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-            <Mail className="w-4 h-4" />
-            Email All Users
-          </button>
-          <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-            Export Users
-          </button>
         </div>
       </div>
 
@@ -172,7 +165,7 @@ export default function Users() {
 
       {/* Users Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-visible">
-        <div className="overflow-x-auto min-h-[400px]">
+        <div className="overflow-x-auto min-h-[150px]">
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -287,7 +280,7 @@ export default function Users() {
             </tbody>
           </table>
         </div>
-        {filteredUsers.length === 0 && (
+        {!isLoading && filteredUsers.length === 0 && (
           <div className="p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="w-8 h-8 text-gray-300" />

@@ -7,7 +7,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
-import Samples from './pages/Samples';
 import Stickers from './pages/Stickers';
 import Labels from './pages/Labels';
 import Magnets from './pages/Magnets';
@@ -17,6 +16,7 @@ import Apparel from './pages/Apparel';
 import Acrylics from './pages/Acrylics';
 import MoreProducts from './pages/MoreProducts';
 import Deals from './pages/Deals';
+import AllReviews from './pages/AllReviews';
 import Marketplace from './pages/Marketplace';
 import ProductDetail from './pages/ProductDetail';
 import UploadArtwork from './pages/UploadArtwork';
@@ -36,19 +36,20 @@ import AdminReviews from './pages/admin/Reviews';
 import AdminSettings from './pages/admin/Settings';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
+import ProgressBar from './components/ProgressBar';
 
 export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <Router>
+          <ProgressBar />
           <Routes>
             {/* Public Routes with MainLayout */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/samples" element={<Samples />} />
               <Route path="/stickers" element={<Stickers />} />
               <Route path="/labels" element={<Labels />} />
               <Route path="/magnets" element={<Magnets />} />
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="/acrylics" element={<Acrylics />} />
               <Route path="/more-products" element={<MoreProducts />} />
               <Route path="/deals" element={<Deals />} />
+              <Route path="/all-reviews" element={<AllReviews />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:name" element={<ProductDetail />} />
               <Route path="/upload-artwork" element={<UploadArtwork />} />

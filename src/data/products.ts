@@ -68,17 +68,4 @@ export const products = [
   { id: 52, name: 'Custom puzzles', category: 'more', price: 10.00, image_url: 'https://picsum.photos/seed/puzzle/200/200' },
   { id: 53, name: 'Custom mousepads', category: 'more', price: 10.00, image_url: 'https://picsum.photos/seed/mousepad/200/200' },
   { id: 54, name: 'Custom wall graphics', category: 'more', price: 10.00, image_url: 'https://picsum.photos/seed/wall/200/200' },
-
-  // Samples
-  { id: 55, name: 'Custom sticker samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/BVqzHNZK/custom-sticker-samples.png' },
-  { id: 56, name: 'Clear sticker samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/gZdxnzHH/clear-sticker-samples.png' },
-  { id: 57, name: 'Glitter sticker samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/CpgCcQ12/glitter-sticker-samples.png' },
-  { id: 58, name: 'Holographic sticker samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/X0rM4C3/holographic-sticker-samples.png' },
-  { id: 59, name: 'Custom magnet samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/chHfMBmQ/magnet-samples.png' },
-  { id: 60, name: 'Custom label samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/qYnVFRmp/label-samples.png' },
-  { id: 61, name: 'Clear label samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/Gv9xVDP6/clear-label-samples.png' },
-  { id: 62, name: 'Custom coaster samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/k60qRLCz/coaster-samples.png' },
-  { id: 63, name: 'Custom tape sample', category: 'samples', price: 4.00, image_url: 'https://i.ibb.co.com/pvQgfznX/packaging-tape-sample.png' },
-  { id: 64, name: 'Custom poly mailer samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/0jdrgjrm/poly-mailer-samples.png' },
-  { id: 65, name: 'Custom bubble mailer samples', category: 'samples', price: 9.00, image_url: 'https://i.ibb.co.com/rRWpW2kd/bubble-mailer-samples.png' }
 ];

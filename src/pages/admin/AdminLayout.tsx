@@ -42,7 +42,7 @@ const sidebarItems = [
       { name: 'Packaging', path: '/admin/products?category=packaging' },
       { name: 'Apparel', path: '/admin/products?category=apparel' },
       { name: 'Acrylics', path: '/admin/products?category=acrylics' },
-      { name: 'Samples', path: '/admin/products?category=samples' },
+      { name: 'More Products', path: '/admin/products?category=more' },
     ]
   },
   { name: 'Orders', icon: ShoppingCart, path: '/admin/orders' },
@@ -221,6 +221,7 @@ export default function AdminLayout() {
   }, []);
 
   const handleLogout = () => {
+    closeSidebarOnMobile();
     setIsLogoutModalOpen(true);
   };
 
@@ -230,6 +231,12 @@ export default function AdminLayout() {
     setIsLogoutModalOpen(false);
   };
 
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
       <LogoutModal 
@@ -237,10 +244,28 @@ export default function AdminLayout() {
         onClose={() => setIsLogoutModalOpen(false)} 
         onConfirm={confirmLogout} 
       />
+      
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar - Desktop */}
       <aside className={`fixed inset-y-0 left-0 bg-[#1a1a1a] text-white flex flex-col transition-all duration-300 ease-in-out z-40 ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'} lg:translate-x-0 lg:static ${isSidebarOpen ? 'lg:w-64' : 'lg:w-[65px]'}`}>
         <div className="p-4 flex items-center justify-between border-b border-gray-800 shrink-0">
-          <Link to="/admin" className={`flex items-center gap-2 font-bold text-xl ${!isSidebarOpen ? 'lg:hidden' : 'block'}`}>
+          <Link 
+            to="/admin" 
+            onClick={closeSidebarOnMobile}
+            className={`flex items-center gap-2 font-bold text-xl ${!isSidebarOpen ? 'lg:hidden' : 'block'}`}
+          >
             <div className="w-8 h-8 bg-[#f37021] rounded flex items-center justify-center text-white">S</div>
             <span>Admin Panel</span>
           </Link>
@@ -255,6 +280,7 @@ export default function AdminLayout() {
         <nav className="flex-1 mt-4 px-2 space-y-1 overflow-y-auto custom-scrollbar">
           <Link
             to="/"
+            onClick={closeSidebarOnMobile}
             className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-blue-900/20 text-blue-400 mb-4"
           >
             <Home className="w-5 h-5" />
@@ -281,7 +307,7 @@ export default function AdminLayout() {
                         <Link
                           key={child.name}
                           to={child.path}
-                          onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
+                          onClick={closeSidebarOnMobile}
                           className={`block px-3 py-1.5 text-sm rounded-md transition-colors ${location.search.includes(`category=${child.name.toLowerCase()}`) || (child.name === 'More Products' && location.search.includes('category=more')) ? 'text-white bg-gray-800' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
                         >
                           {child.name}
@@ -293,7 +319,7 @@ export default function AdminLayout() {
               ) : (
                 <Link
                   to={item.path}
-                  onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
+                  onClick={closeSidebarOnMobile}
                   className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-gray-800 ${location.pathname === item.path ? 'bg-[#f37021] text-white' : 'text-gray-400'}`}
                 >
                   <item.icon className="w-5 h-5" />

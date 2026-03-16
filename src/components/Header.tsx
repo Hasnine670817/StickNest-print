@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import CartDrawer from './CartDrawer';
 import LogoutModal from './LogoutModal';
+import SearchModal from './SearchModal';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,6 +13,7 @@ export default function Header() {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const { isAuthenticated, user, logout, isLoading: isAuthLoading } = useAuth();
   const { cartCount, isCartLoading } = useCart();
 
@@ -30,7 +32,6 @@ export default function Header() {
     { name: 'Apparel', icon: 'https://i.ibb.co.com/wrjF6ynr/apparel.png', path: '/apparel' },
     { name: 'Acrylics', icon: 'https://i.ibb.co.com/4ndRCLBY/acrylics.png', path: '/acrylics' },
     { name: 'More products', icon: 'https://i.ibb.co.com/XrRXYqkj/more-products.png', path: '/more-products' },
-    { name: 'Samples', icon: 'https://i.ibb.co.com/fG06kTH5/samples.png', path: '/samples' },
   ];
 
   return (
@@ -44,6 +45,10 @@ export default function Header() {
           setIsMobileMenuOpen(false);
           setIsLogoutModalOpen(false);
         }} 
+      />
+      <SearchModal 
+        isOpen={isSearchModalOpen} 
+        onClose={() => setIsSearchModalOpen(false)} 
       />
       {/* Navbar */}
       <nav className="bg-[#333333] text-white px-4 flex items-center justify-between text-[15px] font-bold relative z-50">
@@ -76,21 +81,24 @@ export default function Header() {
                 </div>
               </div>
             </div>
-            <Link to="/samples" className="hover:text-gray-300 py-4">Samples</Link>
             <Link to="/marketplace" className="hover:text-gray-300 py-4">Marketplace</Link>
             <Link to="/deals" className="hover:text-gray-300 py-4">Deals</Link>
-            <a href="#" className="border border-white/30 px-3 py-1.5 rounded hover:bg-white/10">Get PRO</a>
           </div>
         </div>
         <div className="flex items-center space-x-4 lg:space-x-6">
-          <a href="#" className="hover:text-gray-300 py-4"><Search className="w-5 h-5" /></a>
+          <button 
+            onClick={() => setIsSearchModalOpen(true)}
+            className="hover:text-gray-300 py-4"
+          >
+            <Search className="w-5 h-5" />
+          </button>
           <button 
             onClick={() => setIsCartDrawerOpen(true)}
             className="hover:text-gray-300 py-4 relative cursor-pointer"
           >
             <ShoppingCart className="w-5 h-5" />
             {cartCount > 0 && !isHeaderLoading && (
-              <span className="absolute -top-1 -right-2 bg-[#f37021] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+              <span className="absolute top-1 -right-2 bg-[#f37021] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                 {cartCount}
               </span>
             )}
@@ -172,10 +180,8 @@ export default function Header() {
               ))}
             </div>
           </div>
-          <Link to="/samples" className="py-2 font-bold hover:text-gray-300" onClick={() => setIsMobileMenuOpen(false)}>Samples</Link>
           <Link to="/marketplace" className="py-2 font-bold hover:text-gray-300" onClick={() => setIsMobileMenuOpen(false)}>Marketplace</Link>
           <Link to="/deals" className="py-2 font-bold hover:text-gray-300" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link>
-          <a href="#" className="py-2 font-bold hover:text-gray-300">Get PRO</a>
           <div className="h-px bg-white/10 my-2"></div>
           {isHeaderLoading ? (
             <div className="h-10 bg-gray-600 animate-pulse rounded"></div>

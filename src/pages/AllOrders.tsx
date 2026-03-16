@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Package, Clock, CheckCircle, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface Order {
   id: number;
@@ -76,7 +77,9 @@ export default function AllOrders() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="divide-y divide-gray-100">
             {isLoading ? (
-              <div className="p-12 text-center text-gray-500">Loading your orders...</div>
+              <div className="p-12 text-center">
+                <LoadingSpinner />
+              </div>
             ) : orders.length === 0 ? (
               <div className="p-12 text-center">
                 <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />

@@ -5,11 +5,20 @@ import { useCart } from '../context/CartContext';
 
 export default function Cart() {
   const navigate = useNavigate();
-  const { cartItems, updateQuantity, removeItem } = useCart();
+  const { cartItems, updateQuantity, removeItem, isCartLoading } = useCart();
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const discount = cartItems.length > 1 ? subtotal * 0.1 : 0; // Simple discount logic for multiple designs
   const total = subtotal - discount;
+
+  if (isCartLoading) {
+    return (
+      <div className="min-h-screen bg-white py-20 px-4 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#f37021] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 font-medium">Loading your cart...</p>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (

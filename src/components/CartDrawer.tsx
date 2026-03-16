@@ -10,7 +10,7 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { cartItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -83,7 +83,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <div className="flex justify-between items-start mb-1">
                         <h4 className="font-bold text-[#333333] text-sm truncate">{item.name}</h4>
                         <button
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => removeItem(item.id)}
                           className="text-gray-400 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />

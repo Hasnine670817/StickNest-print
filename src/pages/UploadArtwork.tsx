@@ -66,12 +66,12 @@ export default function UploadArtwork() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (file && product && size && quantity && price) {
       // Use previewUrl (base64) if available, otherwise fallback to filename
       const artworkData = previewUrl || file.name;
       
-      addToCart({
+      await addToCart({
         name: product.name,
         image: product.image,
         size: size.name,

@@ -20,6 +20,7 @@ interface Product {
   price: number;
   category: string;
   image_url: string;
+  banner_image_url?: string;
   is_active: boolean;
   created_at: string;
 }
@@ -34,7 +35,8 @@ export default function Products() {
     description: '',
     price: '',
     category: 'stickers',
-    image_url: ''
+    image_url: '',
+    banner_image_url: ''
   });
 
   const [activeCategory, setActiveCategory] = useState('all');
@@ -42,7 +44,7 @@ export default function Products() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
-  const categories = ['stickers', 'labels', 'magnets', 'buttons', 'packaging', 'apparel', 'acrylics', 'more', 'samples'];
+  const categories = ['stickers', 'labels', 'magnets', 'buttons', 'packaging', 'apparel', 'acrylics', 'more'];
   const location = useLocation();
 
   useEffect(() => {
@@ -93,6 +95,7 @@ export default function Products() {
         price: parseFloat(formData.price),
         category: formData.category,
         image_url: formData.image_url,
+        banner_image_url: formData.banner_image_url,
         is_active: editingProduct ? editingProduct.is_active : true
       };
 
@@ -101,17 +104,23 @@ export default function Products() {
           .from('products')
           .update(productData)
           .eq('id', editingProduct.id);
-        if (error) throw error;
+        if (error) {
+          alert('Error updating product: ' + error.message);
+          throw error;
+        }
       } else {
         const { error } = await supabase
           .from('products')
           .insert([productData]);
-        if (error) throw error;
+        if (error) {
+          alert('Error inserting product: ' + error.message);
+          throw error;
+        }
       }
 
       setIsModalOpen(false);
       setEditingProduct(null);
-      setFormData({ name: '', description: '', price: '', category: 'stickers', image_url: '' });
+      setFormData({ name: '', description: '', price: '', category: 'stickers', image_url: '', banner_image_url: '' });
       fetchProducts();
     } catch (err) {
       console.error('Error saving product:', err);
@@ -160,7 +169,7 @@ export default function Products() {
         <button 
           onClick={() => {
             setEditingProduct(null);
-            setFormData({ name: '', description: '', price: '', category: activeCategory === 'all' ? 'stickers' : activeCategory, image_url: '' });
+            setFormData({ name: '', description: '', price: '', category: activeCategory === 'all' ? 'stickers' : activeCategory, image_url: '', banner_image_url: '' });
             setIsModalOpen(true);
           }}
           className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#f37021] text-white rounded-lg font-semibold hover:bg-[#e56a17] transition-colors shadow-sm w-full sm:w-auto"
@@ -257,7 +266,8 @@ export default function Products() {
                             description: product.description,
                             price: product.price.toString(),
                             category: product.category,
-                            image_url: product.image_url
+                            image_url: product.image_url,
+                            banner_image_url: product.banner_image_url || ''
                           });
                           setIsModalOpen(true);
                         }}
@@ -343,7 +353,8 @@ export default function Products() {
                               description: product.description,
                               price: product.price.toString(),
                               category: product.category,
-                              image_url: product.image_url
+                              image_url: product.image_url,
+                              banner_image_url: product.banner_image_url || ''
                             });
                             setIsModalOpen(true);
                           }}
@@ -451,18 +462,67 @@ export default function Products() {
                       <option value="apparel">Apparel</option>
                       <option value="acrylics">Acrylics</option>
                       <option value="more">More Products</option>
-                      <option value="samples">Samples</option>
                     </select>
                   </div>
                   <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Image URL</label>
-                    <input 
-                      type="url" 
-                      value={formData.image_url}
-                      onChange={e => setFormData({...formData, image_url: e.target.value})}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
-                      placeholder="https://example.com/image.jpg"
-                    />
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Product Image URL</label>
+                    <div className="flex flex-col gap-3">
+                      <input 
+                        type="url" 
+                        value={formData.image_url}
+                        onChange={e => setFormData({...formData, image_url: e.target.value})}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                        placeholder="Paste image URL here (e.g. from Imgur, Google Photos, etc.)"
+                      />
+                      
+                      {formData.image_url && (
+                        <div className="relative w-24 h-24 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                          <img 
+                            src={formData.image_url} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setFormData({...formData, image_url: ''})}
+                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          >
+                            <XCircle className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Banner Image URL (Background)</label>
+                    <div className="flex flex-col gap-3">
+                      <input 
+                        type="url" 
+                        value={formData.banner_image_url}
+                        onChange={e => setFormData({...formData, banner_image_url: e.target.value})}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                        placeholder="Paste banner image URL here"
+                      />
+                      
+                      {formData.banner_image_url && (
+                        <div className="relative w-full h-32 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                          <img 
+                            src={formData.banner_image_url} 
+                            alt="Banner Preview" 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setFormData({...formData, banner_image_url: ''})}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-md"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="col-span-1 sm:col-span-2">
                     <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Heart, ShoppingCart, ChevronRight, Check } from "lucide-react";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 // Mock data for products
 const baseProducts = [
@@ -347,10 +348,7 @@ export default function Marketplace() {
         {/* Left Column: Products Grid */}
         <div className="flex-1">
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              {/* Spinner */}
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff7a00]"></div>
-            </div>
+            <LoadingSpinner />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentProducts.map((product) => (

@@ -3,6 +3,7 @@ import { Star, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Feature from '../components/Feature';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface Product {
   id: string;
@@ -11,12 +12,24 @@ interface Product {
   price: number;
   category: string;
   image_url: string;
+  banner_image_url?: string;
   is_active: boolean;
+}
+
+interface Review {
+  id: number;
+  user_name: string;
+  user_avatar: string | null;
+  rating: number;
+  title: string;
+  comment: string;
+  created_at: string;
 }
 
 export default function Buttons() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const buttons = products.filter(p => p.category === 'buttons' && p.is_active);
 
   useEffect(() => {
@@ -38,51 +51,31 @@ export default function Buttons() {
       }
     };
 
+    const fetchReviews = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('is_approved', true)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (error) throw error;
+        setReviews(data || []);
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+      }
+    };
+
     fetchProducts();
+    fetchReviews();
   }, []);
 
-  const reviews = [
-    {
-      initials: 'WD',
-      bg: 'bg-blue-100',
-      title: 'Perfect Quality Every Time!',
-      name: 'Wendy Daniels',
-      time: '3 hours ago',
-      text: 'Our Store never disappoints. I\'ve used them over and over again and they are consistent. The quality is top notch.'
-    },
-    {
-      initials: 'AL',
-      bg: 'bg-purple-100',
-      title: 'Best stickers ever',
-      name: 'Amber Lynch',
-      time: '13 hours ago',
-      text: 'I ordered 3 sticker packs from 3 different companies at the same time. Our Store was the cheapest, fastest delivery, and over all best quality. I have ordered from them multiple times and have never been let down, they will be my go to.'
-    },
-    {
-      initials: 'MT',
-      bg: 'bg-green-100',
-      title: 'Great stickers',
-      name: 'Mary Tran',
-      time: '15 hours ago',
-      text: 'Good stickers. Nice feel to them and great stickiness.'
-    },
-    {
-      initials: 'MT',
-      bg: 'bg-green-100',
-      title: 'Excellent stickers',
-      name: 'Mary Tran',
-      time: '15 hours ago',
-      text: 'Stickers are great! Nice feel to them! Good stick to them.'
-    },
-    {
-      initials: 'd',
-      bg: 'bg-purple-800 text-white',
-      title: 'Perfect quality bigger than expected',
-      name: 'draco ots',
-      time: '16 hours ago',
-      text: 'Awesome will definitely be shopping again'
-    }
-  ];
+  const stats = {
+    average: reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : '4.8',
+    total: reviews.length > 0 ? reviews.length.toLocaleString() : '185,984',
+    recommend: '96%'
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -102,34 +95,37 @@ export default function Buttons() {
               <span className="font-bold">Free shipping</span>
             </div>
           </div>
-          <Link to="/samples" className="bg-[#e0661e] hover:bg-[#d45b19] transition-colors text-white px-6 py-2.5 rounded font-bold text-[15px]">
-            Get samples
-          </Link>
         </div>
       </section>
 
       {/* Grid Section */}
       <section className="bg-[#f4f4f4] py-16 px-4 sm:px-8">
         <div className="max-w-[1100px] mx-auto">
-          {buttons.length > 0 ? (
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : buttons.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-12">
               {buttons.map((product) => (
                 <Link 
                   key={product.id} 
                   to={`/product/${product.name?.toLowerCase().replace(/\s+/g, '-') || 'product'}`} 
-                  state={{ image: product.image_url, name: product.name, price: product.price }}
+                  state={{ 
+                    image: product.image_url, 
+                    name: product.name, 
+                    price: product.price,
+                    banner_image_url: product.banner_image_url
+                  }}
                   className="flex flex-col items-center text-center group cursor-pointer rounded-xl py-4 px-4 hover:bg-[#E8E8E8] transition-all duration-300"
                 >
                   <div className="w-full flex items-center justify-center mb-4">
                     <img 
                       src={product.image_url || 'https://picsum.photos/seed/placeholder/200/200'} 
                       alt={product.name} 
-                      className="w-full aspect-square object-cover rounded-xl border-[6px] border-white shadow-md group-hover:scale-105 transition-transform duration-300" 
+                      className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300" 
                       referrerPolicy="no-referrer"
                     />
                   </div>
                   <span className="text-[15px] text-[#333333] font-medium">{product.name}</span>
-                  <span className="text-[13px] text-[#f37021] font-bold mt-1">From ${(product.price || 0).toFixed(2)}</span>
                 </Link>
               ))}
             </div>
@@ -178,19 +174,19 @@ export default function Buttons() {
           
           <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start text-center mb-12 gap-8 sm:gap-0">
             <div>
-              <div className="text-[40px] font-bold text-[#333333] leading-none mb-2">4.8 / 5</div>
+              <div className="text-[40px] font-bold text-[#333333] leading-none mb-2">{stats.average} / 5</div>
               <div className="flex justify-center">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-[#ffc107] fill-current" />
+                  <Star key={i} className={`w-5 h-5 ${i < Math.round(parseFloat(stats.average)) ? 'text-[#ffc107] fill-current' : 'text-gray-300'}`} />
                 ))}
               </div>
             </div>
             <div>
-              <div className="text-[40px] font-bold text-[#333333] leading-none mb-2">185,984</div>
+              <div className="text-[40px] font-bold text-[#333333] leading-none mb-2">{stats.total}</div>
               <div className="text-[15px] text-[#333333]">Total reviews</div>
             </div>
             <div>
-              <div className="text-[40px] font-bold text-[#333333] leading-none mb-2">96%</div>
+              <div className="text-[40px] font-bold text-[#333333] leading-none mb-2">{stats.recommend}</div>
               <div className="text-[15px] text-[#333333]">Would order again</div>
             </div>
           </div>
@@ -198,34 +194,42 @@ export default function Buttons() {
           <div className="border-t border-gray-200 mb-8"></div>
           
           <div className="space-y-10">
-            {reviews.map((review, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-[18px] font-bold shrink-0 ${review.bg}`}>
-                  {review.initials}
-                </div>
-                <div>
-                  <div className="flex items-center mb-1">
-                    <div className="flex mr-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-[#ffc107] fill-current" />
-                      ))}
+            {reviews.length === 0 ? (
+              <p className="text-center text-gray-500 py-10">No reviews yet. Be the first to write one!</p>
+            ) : (
+              reviews.map((review) => (
+                <div key={review.id} className="flex gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-[18px] font-bold shrink-0 overflow-hidden">
+                    {review.user_avatar ? (
+                      <img src={review.user_avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      review.user_name.charAt(0)
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center mb-1">
+                      <div className="flex mr-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-[#ffc107] fill-current' : 'text-gray-300'}`} />
+                        ))}
+                      </div>
+                      <span className="font-bold text-[#333333] text-[15px]">{review.title}</span>
                     </div>
-                    <span className="font-bold text-[#333333] text-[15px]">{review.title}</span>
+                    <div className="text-[13px] text-gray-500 mb-2">
+                      <span className="font-bold text-[#333333]">{review.user_name}</span> {new Date(review.created_at).toLocaleDateString()}
+                    </div>
+                    <p className="text-[15px] text-[#333333] leading-relaxed">
+                      {review.comment}
+                    </p>
                   </div>
-                  <div className="text-[13px] text-gray-500 mb-2">
-                    <span className="font-bold text-[#333333]">{review.name}</span> {review.time}
-                  </div>
-                  <p className="text-[15px] text-[#333333] leading-relaxed">
-                    {review.text}
-                  </p>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           
-          <button className="mt-10 mx-auto block bg-[#f4f4f4] hover:bg-[#e8e8e8] text-[#333333] font-bold py-3 px-6 rounded transition-colors text-[15px]">
-            See all reviews
-          </button>
+          <Link to="/deals" className="mt-10 mx-auto block w-fit bg-[#f4f4f4] hover:bg-[#e8e8e8] text-[#333333] font-bold py-3 px-6 rounded transition-colors text-[15px]">
+            Write a review
+          </Link>
         </div>
       </section>
 

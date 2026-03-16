@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Instagram, Youtube, X, Lock } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -88,14 +88,14 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">Products</h4>
             <ul className="space-y-2 md:space-y-3 text-[#0066cc] text-[13px] md:text-[14px]">
-              <li><a href="#" className="hover:underline">Stickers</a></li>
-              <li><a href="#" className="hover:underline">Labels</a></li>
-              <li><a href="#" className="hover:underline">Magnets</a></li>
-              <li><a href="#" className="hover:underline">Buttons</a></li>
-              <li><a href="#" className="hover:underline">Packaging</a></li>
-              <li><a href="#" className="hover:underline">Apparel</a></li>
-              <li><a href="#" className="hover:underline">Acrylics</a></li>
-              <li><a href="#" className="hover:underline">More products</a></li>
+              <li><Link to="/stickers" className="hover:underline">Stickers</Link></li>
+              <li><Link to="/labels" className="hover:underline">Labels</Link></li>
+              <li><Link to="/magnets" className="hover:underline">Magnets</Link></li>
+              <li><Link to="/buttons" className="hover:underline">Buttons</Link></li>
+              <li><Link to="/packaging" className="hover:underline">Packaging</Link></li>
+              <li><Link to="/apparel" className="hover:underline">Apparel</Link></li>
+              <li><Link to="/acrylics" className="hover:underline">Acrylics</Link></li>
+              <li><Link to="/more-products" className="hover:underline">More products</Link></li>
             </ul>
           </div>
           <div>
@@ -121,11 +121,11 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">Resources</h4>
             <ul className="space-y-2 md:space-y-3 text-[#0066cc] text-[13px] md:text-[14px]">
-              <li><a href="#" className="hover:underline">Deals</a></li>
+              <li><Link to="/deals" className="hover:underline">Deals</Link></li>
               <li><a href="#" className="hover:underline">Teams</a></li>
               <li><a href="#" className="hover:underline">Templates</a></li>
               <li><a href="#" className="hover:underline">Uses</a></li>
-              <li><a href="#" className="hover:underline">Marketplace</a></li>
+              <li><Link to="/marketplace" className="hover:underline">Marketplace</Link></li>
               <li><a href="#" className="hover:underline">Integrations</a></li>
             </ul>
           </div>

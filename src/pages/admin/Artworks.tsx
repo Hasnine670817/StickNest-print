@@ -18,9 +18,10 @@ import {
 } from 'lucide-react';
 
 interface Artwork {
-  id: number;
+  id: number | string;
   user_id: string;
-  order_id: number;
+  order_id?: number;
+  cart_item_id?: string;
   file_url: string;
   file_type: string;
   status: string;
@@ -28,6 +29,7 @@ interface Artwork {
   created_at: string;
   customer_name: string;
   customer_email: string;
+  source?: 'order' | 'cart' | 'manual';
 }
 
 export default function Artworks() {
@@ -47,33 +49,42 @@ export default function Artworks() {
     fetchArtworks();
   }, []);
 
-  const fetchArtworks = async () => {
-    setIsLoading(true);
+  const fetchArtworks = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
-      // 1. Fetch from artworks table
+      // 1. Fetch from order_items table (Ordered artworks)
+      const { data: orderItems, error: itemsError } = await supabase
+        .from('order_items')
+        .select('id, order_id, artwork')
+        .not('artwork', 'is', null);
+
+      if (itemsError) throw itemsError;
+
+      // 2. Fetch from cart_items table (Artworks in cart - before ordering)
+      const { data: cartItems, error: cartError } = await supabase
+        .from('cart_items')
+        .select('id, user_id, artwork, created_at')
+        .not('artwork', 'is', null);
+
+      if (cartError) {
+        console.warn('Error fetching cart items:', cartError);
+      }
+
+      // 3. Fetch from artworks table (Legacy / Other)
       const { data: artworksData, error: artworksError } = await supabase
         .from('artworks')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (artworksError) throw artworksError;
+      if (artworksError) {
+        console.warn('Error fetching artworks table:', artworksError);
+      }
 
-      // 2. Fetch from order_items table
-      const { data: orderItems, error: itemsError } = await supabase
-        .from('order_items')
-        .select('*')
-        .not('artwork', 'is', null);
-
-      if (itemsError) throw itemsError;
-
-      // 3. Fetch profiles and orders for context
+      // 4. Fetch profiles and orders for context
+      const orderIds = [...new Set(orderItems?.map(i => i.order_id).filter(Boolean) || [])];
       const userIds = [...new Set([
-        ...(artworksData?.map(a => a.user_id) || []),
-      ].filter(Boolean))];
-
-      const orderIds = [...new Set([
-        ...(artworksData?.map(a => a.order_id) || []),
-        ...(orderItems?.map(i => i.order_id) || [])
+        ...(artworksData?.map(a => a.user_id).filter(Boolean) || []),
+        ...(cartItems?.map(c => c.user_id).filter(Boolean) || [])
       ].filter(Boolean))];
 
       let profiles: any[] = [];
@@ -87,12 +98,10 @@ export default function Artworks() {
         const { data } = await supabase.from('orders').select('id, user_id, created_at').in('id', orderIds);
         orders = data || [];
         
-        // Fetch profiles for orders too (especially for guest orders or if user_id is different)
         const orderUserIds = [...new Set(orders.map(o => o.user_id).filter(Boolean))];
         if (orderUserIds.length > 0) {
           const { data: orderProfiles } = await supabase.from('profiles').select('id, full_name, email').in('id', orderUserIds);
           if (orderProfiles) {
-            // Merge unique profiles
             orderProfiles.forEach(p => {
               if (!profiles.find(existing => existing.id === p.id)) {
                 profiles.push(p);
@@ -102,35 +111,65 @@ export default function Artworks() {
         }
       }
 
-      const formattedArtworks: Artwork[] = artworksData?.map(item => {
-        const profile = profiles.find(p => p.id === item.user_id);
-        return {
-          ...item,
-          customer_name: profile?.full_name || 'Unknown',
-          customer_email: profile?.email || 'Unknown'
-        };
-      }) || [];
+      const formattedArtworks: Artwork[] = [];
 
-      // Add unique images from order items
+      // Add from order items (Highest priority - actual orders)
       orderItems?.forEach((item: any) => {
-        const imageUrl = item.artwork;
-        // Check if this specific order's artwork is already in the artworks table
-        const alreadyInArtworks = artworksData?.some(a => a.file_url === imageUrl && a.order_id === item.order_id);
+        const order = orders.find(o => o.id === item.order_id);
+        const profile = order ? profiles.find(p => p.id === order.user_id) : null;
         
-        if (!alreadyInArtworks && imageUrl) {
-          const order = orders.find(o => o.id === item.order_id);
-          const profile = order ? profiles.find(p => p.id === order.user_id) : null;
+        // Look for status in artworks table - match by file_url or order_id
+        const artworkStatusData = artworksData?.find(a => 
+          a.file_url === item.artwork || (a.order_id === item.order_id && a.file_url === item.artwork)
+        );
+        
+        formattedArtworks.push({
+          id: item.id,
+          user_id: order?.user_id || '',
+          order_id: item.order_id,
+          file_url: item.artwork,
+          file_type: 'image/png',
+          status: artworkStatusData?.status || 'pending',
+          rejection_reason: artworkStatusData?.rejection_reason,
+          created_at: order?.created_at || new Date().toISOString(),
+          customer_name: profile?.full_name || 'Guest',
+          customer_email: profile?.email || 'No email',
+          source: 'order'
+        });
+      });
+
+      // Add from cart items (In cart - before ordering)
+      cartItems?.forEach((item: any) => {
+        // Only add if not already added via order (same URL)
+        if (!formattedArtworks.find(a => a.file_url === item.artwork)) {
+          const profile = profiles.find(p => p.id === item.user_id);
+          const artworkStatusData = artworksData?.find(a => a.file_url === item.artwork);
           
           formattedArtworks.push({
             id: item.id,
-            user_id: order?.user_id || '',
-            order_id: item.order_id,
-            file_url: imageUrl,
+            user_id: item.user_id,
+            cart_item_id: item.id,
+            file_url: item.artwork,
             file_type: 'image/png',
-            status: 'pending', // Set to pending so admin can review
-            created_at: order?.created_at || new Date().toISOString(),
+            status: artworkStatusData?.status || 'in-cart',
+            rejection_reason: artworkStatusData?.rejection_reason,
+            created_at: item.created_at || new Date().toISOString(),
             customer_name: profile?.full_name || 'Guest',
-            customer_email: profile?.email || 'No email'
+            customer_email: profile?.email || 'No email',
+            source: 'cart'
+          });
+        }
+      });
+
+      // Add from artworks table (Legacy / Manual)
+      artworksData?.forEach(item => {
+        if (!formattedArtworks.find(a => a.file_url === item.file_url)) {
+          const profile = profiles.find(p => p.id === item.user_id);
+          formattedArtworks.push({
+            ...item,
+            customer_name: profile?.full_name || 'Unknown',
+            customer_email: profile?.email || 'Unknown',
+            source: 'manual'
           });
         }
       });
@@ -143,26 +182,92 @@ export default function Artworks() {
     }
   };
 
-  const updateStatus = async (id: number, status: string, reason?: string) => {
+  const updateStatus = async (id: number | string, status: string, reason?: string) => {
     try {
-      const { error } = await supabase
-        .from('artworks')
-        .update({ 
-          status,
-          rejection_reason: reason || null
-        })
-        .eq('id', id);
-      
-      if (error) {
-        // If it's not in artworks table (from order_items fallback), we just update local state for demo
-        setArtworks(prev => prev.map(a => a.id === id ? { ...a, status, rejection_reason: reason } : a));
-      } else {
-        fetchArtworks();
+      const artwork = artworks.find(a => String(a.id) === String(id));
+      if (!artwork) {
+        console.error('Artwork not found for ID:', id);
+        return;
       }
+
+      // Optimistically update local state to show change immediately
+      setArtworks(prev => prev.map(a => 
+        a.file_url === artwork.file_url ? { ...a, status, rejection_reason: reason || null } : a
+      ));
       
       setRejectionModal({ isOpen: false, artworkId: null, reason: '' });
+
+      // Try to find existing record by file_url or order_id
+      const { data: existingArtworks, error: fetchError } = await supabase
+        .from('artworks')
+        .select('id')
+        .eq('file_url', artwork.file_url);
+
+      if (fetchError) console.error('Error checking existing artwork:', fetchError);
+
+      if (existingArtworks && existingArtworks.length > 0) {
+        // Update all matching records
+        const idsToUpdate = existingArtworks.map(a => a.id);
+        const { error: updateError } = await supabase
+          .from('artworks')
+          .update({ 
+            status,
+            rejection_reason: reason || null,
+            order_id: artwork.order_id || null,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', idsToUpdate);
+        
+        if (updateError) console.error('Error updating artwork status:', updateError);
+      } else {
+        // Insert new record as source of truth for this artwork
+        const { error: insertError } = await supabase
+          .from('artworks')
+          .insert([{
+            user_id: artwork.user_id || null,
+            order_id: artwork.order_id || null,
+            file_url: artwork.file_url,
+            status,
+            rejection_reason: reason || null,
+            created_at: new Date().toISOString()
+          }]);
+        
+        if (insertError) console.error('Error inserting artwork status:', insertError);
+      }
+
+      // Update order status if needed
+      if (artwork.order_id) {
+        if (status === 'approved') {
+          await supabase.from('orders').update({ status: 'printing' }).eq('id', artwork.order_id);
+        } else if (status === 'rejected') {
+          await supabase.from('orders').update({ status: 'pending' }).eq('id', artwork.order_id);
+        }
+      }
+      
+      // Fetch fresh data in background to ensure everything is in sync
+      await fetchArtworks(true);
     } catch (err) {
-      console.error('Error updating status:', err);
+      console.error('Error in updateStatus:', err);
+      fetchArtworks(true);
+    }
+  };
+
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename || 'artwork.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      // Fallback to opening in new tab
+      window.open(url, '_blank');
     }
   };
 
@@ -208,6 +313,7 @@ export default function Artworks() {
             <option>Pending</option>
             <option>Approved</option>
             <option>Rejected</option>
+            <option>In-Cart</option>
           </select>
           <button 
             onClick={fetchArtworks}
@@ -254,23 +360,27 @@ export default function Artworks() {
                   >
                     <Eye className="w-5 h-5" />
                   </button>
-                  <a 
-                    href={artwork.file_url} 
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button 
+                    onClick={() => handleDownload(artwork.file_url, `artwork-order-${artwork.order_id}.png`)}
                     className="p-2 bg-white rounded-full text-gray-900 hover:bg-gray-100 transition-colors"
                   >
                     <Download className="w-5 h-5" />
-                  </a>
+                  </button>
                 </div>
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-3 left-3 flex flex-col gap-1">
                   <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm border ${
                     artwork.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
                     artwork.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
+                    artwork.status === 'in-cart' ? 'bg-blue-100 text-blue-700 border-blue-200' :
                     'bg-red-100 text-red-700 border-red-200'
                   }`}>
                     {artwork.status || 'pending'}
                   </span>
+                  {artwork.source === 'cart' && (
+                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200 text-[8px] font-bold uppercase w-fit">
+                      In Cart
+                    </span>
+                  )}
                 </div>
                 {artwork.order_id && (
                   <div className="absolute top-3 right-3">
@@ -391,9 +501,12 @@ export default function Artworks() {
               <div className="bg-white p-12 rounded-2xl flex flex-col items-center gap-4">
                 <FileText className="w-32 h-32 text-gray-200" />
                 <p className="text-xl font-bold text-gray-900">File Preview Not Available</p>
-                <a href={selectedArtwork.file_url} download className="px-6 py-3 bg-[#f37021] text-white rounded-xl font-bold flex items-center gap-2">
+                <button 
+                  onClick={() => handleDownload(selectedArtwork.file_url, `artwork-order-${selectedArtwork.order_id}.png`)}
+                  className="px-6 py-3 bg-[#f37021] text-white rounded-xl font-bold flex items-center gap-2"
+                >
                   <Download className="w-5 h-5" /> Download to View
-                </a>
+                </button>
               </div>
             )}
             <div className="mt-8 bg-white/10 backdrop-blur-md p-4 rounded-2xl flex items-center gap-8 text-white">
