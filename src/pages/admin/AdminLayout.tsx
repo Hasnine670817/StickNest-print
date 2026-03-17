@@ -48,8 +48,11 @@ const sidebarItems = [
   { name: 'Orders', icon: ShoppingCart, path: '/admin/orders' },
   { name: 'Users', icon: Users, path: '/admin/users' },
   { name: 'Artwork Uploads', icon: ImageIcon, path: '/admin/artworks' },
+  { name: 'Returns', icon: FileText, path: '/admin/returns' },
+  { name: 'Blogs', icon: FileText, path: '/admin/blogs' },
   { name: 'Reviews', icon: Star, path: '/admin/reviews' },
   { name: 'Discounts / Coupons', icon: Ticket, path: '/admin/coupons' },
+  { name: 'Marketplace', icon: LayoutDashboard, path: '/admin/marketplace' },
   { name: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 

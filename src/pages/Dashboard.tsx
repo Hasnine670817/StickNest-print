@@ -254,6 +254,12 @@ export default function Dashboard() {
                 >
                   Edit profile
                 </button>
+                <Link 
+                  to="/wishlist"
+                  className="block w-full mt-2 text-sm text-[#0066cc] font-bold hover:underline text-left"
+                >
+                  My Wishlist
+                </Link>
               </div>
             </div>
 

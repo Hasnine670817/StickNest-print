@@ -140,6 +140,9 @@ export default function Header() {
                   <Link to="/dashboard" className="flex items-center px-5 py-2.5 hover:bg-gray-50 transition-colors text-[#333333] font-normal" onClick={() => setIsUserMenuOpen(false)}>
                     Dashboard
                   </Link>
+                  <Link to="/wishlist" className="flex items-center px-5 py-2.5 hover:bg-gray-50 transition-colors text-[#333333] font-normal" onClick={() => setIsUserMenuOpen(false)}>
+                    My Wishlist
+                  </Link>
                   <button 
                     onClick={() => { setIsLogoutModalOpen(true); setIsUserMenuOpen(false); }} 
                     className="w-full text-left flex items-center px-5 py-2.5 hover:bg-gray-50 transition-colors text-[#333333] font-normal"

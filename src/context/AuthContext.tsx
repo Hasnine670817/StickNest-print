@@ -28,7 +28,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          if (error.message.includes('Refresh Token Not Found')) {
+            console.warn('Stale session detected, clearing auth data');
+            await supabase.auth.signOut();
+            localStorage.removeItem('user');
+            setUser(null);
+            setIsAuthenticated(false);
+            return;
+          }
+          throw error;
+        }
+
         if (session?.user) {
           const { data: profileData } = await supabase
             .from('profiles')

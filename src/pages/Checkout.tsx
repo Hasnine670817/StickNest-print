@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,13 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, clearCart } = useCart();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login', { state: { from: '/checkout' } });
+    }
+  }, [user, navigate]);
+
   const [email, setEmail] = useState(user?.email || '');
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [address, setAddress] = useState('');
@@ -106,6 +113,26 @@ export default function Checkout() {
         
         const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
         if (itemsError) throw itemsError;
+
+        // Update cart_count for marketplace designs
+        for (const item of cartItems) {
+          if (item.design_id) {
+            const { error: updateError } = await supabase.rpc('increment_sales', { row_id: item.design_id });
+            if (updateError) {
+              // Fallback if RPC doesn't exist
+              const { data: currentData } = await supabase
+                .from('marketplace_designs')
+                .select('cart_count')
+                .eq('id', item.design_id)
+                .single();
+              
+              await supabase
+                .from('marketplace_designs')
+                .update({ cart_count: (parseInt(currentData?.cart_count || '0') + 1).toString() })
+                .eq('id', item.design_id);
+            }
+          }
+        }
 
         // Create notification for admin
         try {

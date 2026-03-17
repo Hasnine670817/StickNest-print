@@ -2,14 +2,24 @@ import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { X, Lock, Share2, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Cart() {
   const navigate = useNavigate();
   const { cartItems, updateQuantity, removeItem, isCartLoading } = useCart();
+  const { user } = useAuth();
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const discount = cartItems.length > 1 ? subtotal * 0.1 : 0; // Simple discount logic for multiple designs
   const total = subtotal - discount;
+
+  const handleCheckout = () => {
+    if (!user) {
+      navigate('/login', { state: { from: '/checkout' } });
+    } else {
+      navigate('/checkout', { state: { items: cartItems, total } });
+    }
+  };
 
   if (isCartLoading) {
     return (
@@ -133,7 +143,7 @@ export default function Cart() {
               </div>
               
               <button 
-                onClick={() => navigate('/checkout', { state: { items: cartItems, total } })}
+                onClick={handleCheckout}
                 className="w-full bg-[#f37021] text-white py-4 rounded-lg font-bold text-[22px] hover:bg-[#e0661e] transition-all shadow-md flex items-center justify-center gap-2 mb-6"
               >
                 Checkout

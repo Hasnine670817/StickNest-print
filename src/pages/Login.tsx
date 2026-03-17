@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -7,11 +7,14 @@ import { supabase } from '../lib/supabase';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const from = location.state?.from || '/dashboard';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +52,7 @@ export default function Login() {
             fullName: authData.user.user_metadata?.full_name || 'User',
             role: 'user',
           });
-          navigate('/dashboard');
+          navigate(from);
         } else {
           login({
             id: authData.user.id,
@@ -61,7 +64,7 @@ export default function Login() {
           if (profileData.role === 'admin') {
             navigate('/admin');
           } else {
-            navigate('/dashboard');
+            navigate(from);
           }
         }
       }
@@ -139,7 +142,7 @@ export default function Login() {
             </button>
 
             <div className="text-center text-[14px] text-gray-600">
-              or <Link to="/signup" className="text-[#0066cc] font-bold hover:underline">create an account</Link>
+              or <Link to="/signup" state={{ from }} className="text-[#0066cc] font-bold hover:underline">create an account</Link>
             </div>
           </form>
         </div>

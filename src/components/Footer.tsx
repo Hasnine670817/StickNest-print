@@ -111,11 +111,12 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">Company</h4>
             <ul className="space-y-2 md:space-y-3 text-[#0066cc] text-[13px] md:text-[14px]">
-              <li><a href="#" className="hover:underline">About</a></li>
-              <li><a href="#" className="hover:underline">Blog</a></li>
+              <li><Link to="/about" className="hover:underline">About</Link></li>
+              <li><Link to="/blog" className="hover:underline">Blog</Link></li>
               <li><a href="#" className="hover:underline">Careers</a></li>
               <li><a href="#" className="hover:underline">Press</a></li>
               <li><a href="#" className="hover:underline">Stats</a></li>
+              <li><Link to="/legal" className="hover:underline">Legal</Link></li>
             </ul>
           </div>
           <div>
@@ -133,7 +134,7 @@ export default function Footer() {
             <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">Support</h4>
             <ul className="space-y-2 md:space-y-3 text-[#0066cc] text-[13px] md:text-[14px]">
               <li><a href="#" className="hover:underline">Help</a></li>
-              <li><a href="#" className="hover:underline">Returns</a></li>
+              <li><Link to="/returns" className="hover:underline">Returns</Link></li>
               <li><a href="#" className="hover:underline">Feedback</a></li>
               <li><button onClick={() => setIsAdminModalOpen(true)} className="hover:underline text-left">Admin Login</button></li>
             </ul>
@@ -144,8 +145,8 @@ export default function Footer() {
           <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2">
             <span>© 2026 Sticker Mule</span>
             <a href="#" className="text-[#0066cc] hover:underline">Site map</a>
-            <a href="#" className="text-[#0066cc] hover:underline">Privacy</a>
-            <a href="#" className="text-[#0066cc] hover:underline">Terms</a>
+            <Link to="/legal/privacy" className="text-[#0066cc] hover:underline">Privacy</Link>
+            <Link to="/legal/terms" className="text-[#0066cc] hover:underline">Terms</Link>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
             <div className="flex items-center space-x-5">
