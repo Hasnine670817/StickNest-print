@@ -42,13 +42,14 @@ export default function Footer() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedLang, setSelectedLang] = useState(LANGUAGES.find(l => l.name === preferences.language) || LANGUAGES[0]);
   
   if (['/login', '/signup'].includes(location.pathname)) {
     return null;
   }
 
   const handleAdminLogin = async (e: React.FormEvent) => {
-    // ... (existing admin login logic)
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -110,9 +111,6 @@ export default function Footer() {
       setIsLoading(false);
     }
   };
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState(LANGUAGES.find(l => l.name === preferences.language) || LANGUAGES[0]);
 
   const handleUpdatePrefs = () => {
     updatePreferences({ language: selectedLang.name, currency: selectedLang.currency, flag: selectedLang.flag });
