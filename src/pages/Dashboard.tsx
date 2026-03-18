@@ -277,8 +277,8 @@ export default function Dashboard() {
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
               <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
               <button 
                 onClick={() => setIsEditModalOpen(false)}
@@ -288,7 +288,7 @@ export default function Dashboard() {
               </button>
             </div>
             
-            <form onSubmit={handleUpdateProfile} className="p-6 space-y-6">
+            <form onSubmit={handleUpdateProfile} className="p-6 space-y-6 overflow-y-auto flex-1">
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative group">
                   <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-gray-100 flex items-center justify-center relative overflow-hidden shadow-inner">

@@ -39,7 +39,7 @@ export default function Artworks() {
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
-  const [rejectionModal, setRejectionModal] = useState<{ isOpen: boolean; artworkId: number | null; reason: string }>({
+  const [rejectionModal, setRejectionModal] = useState<{ isOpen: boolean; artworkId: number | string | null; reason: string }>({
     isOpen: false,
     artworkId: null,
     reason: ''
@@ -316,7 +316,7 @@ export default function Artworks() {
             <option>In-Cart</option>
           </select>
           <button 
-            onClick={fetchArtworks}
+            onClick={() => fetchArtworks()}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
           >
             <Clock className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -453,12 +453,12 @@ export default function Artworks() {
       {/* Rejection Modal */}
       {rejectionModal.isOpen && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-gray-100 bg-gray-50">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-100 bg-gray-50 shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Reject Artwork</h3>
               <p className="text-xs text-gray-500 mt-1">Provide a reason for the customer to fix their design.</p>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Rejection Reason</label>
                 <textarea 

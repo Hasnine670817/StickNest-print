@@ -22,6 +22,7 @@ import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ShareModal from "../components/ShareModal";
 import { motion, AnimatePresence } from "motion/react";
+import ApparelProductDetail from "../components/ApparelProductDetail";
 
 interface Product {
   id: string;
@@ -60,16 +61,50 @@ export default function MarketplaceProductDetail() {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!id) return;
+      if (!id) {
+        console.warn('No ID provided');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching product with ID:', id);
+
       try {
-        const { data, error } = await supabase
+        // Try fetching from marketplace_designs first
+        let { data, error } = await supabase
           .from("marketplace_designs")
           .select("*")
-          .eq("id", id)
-          .single();
+          .eq("id", id);
 
-        if (error) throw error;
-        setProduct(data);
+        if (error) {
+            // console.error('Error fetching from marketplace_designs:', error);
+            throw error;
+        }
+
+        if (data && data.length > 0) {
+            console.log('Product found in marketplace_designs:', data[0]);
+            setProduct(data[0]);
+        } else {
+            console.log('Product not found in marketplace_designs, trying apparel_products...');
+            // Try fetching from apparel_products
+            let { data: apparelData, error: apparelError } = await supabase
+              .from("apparel_products")
+              .select("*")
+              .eq("id", id);
+            
+            if (apparelError) {
+                // console.error('Error fetching from apparel_products:', apparelError);
+                throw apparelError;
+            }
+            
+            if (apparelData && apparelData.length > 0) {
+                console.log('Product found in apparel_products:', apparelData[0]);
+                setProduct(apparelData[0]);
+            } else {
+                console.warn('Product not found in any table for ID:', id);
+                setProduct(null);
+            }
+        }
 
         // Check if wishlisted
         if (user) {
@@ -77,13 +112,12 @@ export default function MarketplaceProductDetail() {
             .from("wishlist")
             .select("id")
             .eq("user_id", user.id)
-            .eq("design_id", id)
-            .single();
+            .eq("design_id", id);
           
-          if (wishlistData) setIsWishlisted(true);
+          if (wishlistData && wishlistData.length > 0) setIsWishlisted(true);
         }
       } catch (err) {
-        console.error("Error fetching product:", err);
+        // console.error("Error fetching product:", err);
       } finally {
         setLoading(false);
       }
@@ -138,12 +172,11 @@ export default function MarketplaceProductDetail() {
         const { data: currentData } = await supabase
           .from('marketplace_designs')
           .select('likes_count')
-          .eq('id', product.id)
-          .single();
+          .eq('id', product.id);
         
         await supabase
           .from('marketplace_designs')
-          .update({ likes_count: (currentData?.likes_count || 0) + 1 })
+          .update({ likes_count: (currentData && currentData.length > 0 ? currentData[0].likes_count : 0) + 1 })
           .eq('id', product.id);
       }
 
@@ -152,7 +185,7 @@ export default function MarketplaceProductDetail() {
 
       setIsWishlisted(true);
     } catch (err) {
-      console.error("Error adding to wishlist:", err);
+      // console.error("Error adding to wishlist:", err);
     } finally {
       setIsWishlisting(false);
     }
@@ -178,12 +211,11 @@ export default function MarketplaceProductDetail() {
         const { data: currentData } = await supabase
           .from('marketplace_designs')
           .select('likes_count')
-          .eq('id', product.id)
-          .single();
+          .eq('id', product.id);
         
         await supabase
           .from('marketplace_designs')
-          .update({ likes_count: Math.max(0, (currentData?.likes_count || 0) - 1) })
+          .update({ likes_count: Math.max(0, (currentData && currentData.length > 0 ? currentData[0].likes_count : 0) - 1) })
           .eq('id', product.id);
       }
 
@@ -193,7 +225,7 @@ export default function MarketplaceProductDetail() {
       setIsWishlisted(false);
       setShowUnwishlistConfirm(false);
     } catch (err) {
-      console.error("Error removing from wishlist:", err);
+      // console.error("Error removing from wishlist:", err);
     } finally {
       setIsWishlisting(false);
     }
@@ -367,18 +399,6 @@ export default function MarketplaceProductDetail() {
                 </>
               )}
             </button>
-
-            {/* Secondary Buttons (Commented out for now) */}
-            {/* 
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <button className="py-3 border border-gray-300 rounded-md font-bold text-[14px] text-[#333] hover:bg-gray-50 transition-colors">
-                Send as a gift
-              </button>
-              <button className="py-3 border border-gray-300 rounded-md font-bold text-[14px] text-[#333] hover:bg-gray-50 transition-colors">
-                Run a giveaway
-              </button>
-            </div>
-            */}
 
             {/* Features List */}
             <div className="mt-8 space-y-4 border-t border-gray-100 pt-8">

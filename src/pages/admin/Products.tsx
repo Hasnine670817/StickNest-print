@@ -28,6 +28,7 @@ interface Product {
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -465,14 +466,56 @@ export default function Products() {
                     </select>
                   </div>
                   <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Product Image URL</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Product Image</label>
                     <div className="flex flex-col gap-3">
+                      <input 
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          setIsUploading(true);
+                          console.log('Starting upload for:', file.name);
+                          
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${Math.random()}.${fileExt}`;
+                            const filePath = `products/${fileName}`;
+                            
+                            console.log('Uploading to:', filePath);
+                            const { error: uploadError } = await supabase.storage
+                              .from('products')
+                              .upload(filePath, file);
+                              
+                            if (uploadError) {
+                              console.error('Upload error:', uploadError);
+                              throw uploadError;
+                            }
+                            
+                            const { data } = supabase.storage
+                              .from('products')
+                              .getPublicUrl(filePath);
+                              
+                            console.log('Upload successful, URL:', data.publicUrl);
+                            setFormData({ ...formData, image_url: data.publicUrl });
+                          } catch (err) {
+                            console.error('Error uploading file:', err);
+                            alert('Error uploading file: ' + (err as Error).message);
+                          } finally {
+                            setIsUploading(false);
+                          }
+                        }}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                      />
+                      {isUploading && <p className="text-sm text-[#f37021]">Uploading...</p>}
+                      <p className="text-xs text-gray-500">Or paste URL below:</p>
                       <input 
                         type="url" 
                         value={formData.image_url}
                         onChange={e => setFormData({...formData, image_url: e.target.value})}
                         className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
-                        placeholder="Paste image URL here (e.g. from Imgur, Google Photos, etc.)"
+                        placeholder="Paste image URL here"
                       />
                       
                       {formData.image_url && (
@@ -495,8 +538,42 @@ export default function Products() {
                     </div>
                   </div>
                   <div className="col-span-1 sm:col-span-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Banner Image URL (Background)</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Banner Image</label>
                     <div className="flex flex-col gap-3">
+                      <input 
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          setIsUploading(true);
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${Math.random()}.${fileExt}`;
+                            const filePath = `products/${fileName}`;
+                            
+                            const { error: uploadError } = await supabase.storage
+                              .from('products')
+                              .upload(filePath, file);
+                              
+                            if (uploadError) throw uploadError;
+                            
+                            const { data } = supabase.storage
+                              .from('products')
+                              .getPublicUrl(filePath);
+                              
+                            setFormData({ ...formData, banner_image_url: data.publicUrl });
+                          } catch (err) {
+                            console.error('Error uploading banner:', err);
+                            alert('Error uploading banner: ' + (err as Error).message);
+                          } finally {
+                            setIsUploading(false);
+                          }
+                        }}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                      />
+                      <p className="text-xs text-gray-500">Or paste URL below:</p>
                       <input 
                         type="url" 
                         value={formData.banner_image_url}

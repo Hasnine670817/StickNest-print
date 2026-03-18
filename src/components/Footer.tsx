@@ -1,14 +1,43 @@
 import React, { useState } from 'react';
-import { Instagram, Youtube, X, Lock } from 'lucide-react';
+import { Instagram, Youtube, X, Lock, Check, ChevronDown } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { usePreferences } from '../context/PreferencesContext';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
+
+const LANGUAGES = [
+  { name: 'English (USD)', flag: 'us', currency: 'USD' },
+  { name: 'English (GBP)', flag: 'gb', currency: 'GBP' },
+  { name: 'English (CAD)', flag: 'ca', currency: 'CAD' },
+  { name: 'English (AUD)', flag: 'au', currency: 'AUD' },
+  { name: 'English (EUR)', flag: 'de', currency: 'EUR' },
+  { name: 'English (INR)', flag: 'in', currency: 'INR' },
+  { name: 'Español (USD)', flag: 'us', currency: 'USD' },
+  { name: 'Español (EUR)', flag: 'es', currency: 'EUR' },
+  { name: 'Español (MXN)', flag: 'mx', currency: 'MXN' },
+  { name: 'Italiano (EUR)', flag: 'it', currency: 'EUR' },
+  { name: 'Français (CAD)', flag: 'ca', currency: 'CAD' },
+  { name: 'Français (EUR)', flag: 'fr', currency: 'EUR' },
+  { name: 'Deutsch (EUR)', flag: 'de', currency: 'EUR' },
+  { name: 'Nederlands (EUR)', flag: 'nl', currency: 'EUR' },
+  { name: 'Português (USD)', flag: 'us', currency: 'USD' },
+  { name: 'Português (EUR)', flag: 'pt', currency: 'EUR' },
+  { name: 'हिन्दी (USD)', flag: 'in', currency: 'USD' },
+  { name: '日本語 (USD)', flag: 'jp', currency: 'USD' },
+];
 
 export default function Footer() {
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { preferences, updatePreferences } = usePreferences();
+  const { t } = useTranslation();
+  
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isPrefsModalOpen, setIsPrefsModalOpen] = useState(false);
+  const [tempPrefs, setTempPrefs] = useState(preferences);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,6 +48,7 @@ export default function Footer() {
   }
 
   const handleAdminLogin = async (e: React.FormEvent) => {
+    // ... (existing admin login logic)
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -81,12 +111,27 @@ export default function Footer() {
     }
   };
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedLang, setSelectedLang] = useState(LANGUAGES.find(l => l.name === preferences.language) || LANGUAGES[0]);
+
+  const handleUpdatePrefs = () => {
+    updatePreferences({ language: selectedLang.name, currency: selectedLang.currency, flag: selectedLang.flag });
+    
+    // Change language based on selected language name
+    const langCode = selectedLang.name.includes('Español') ? 'es' : selectedLang.name.includes('हिन्दी') ? 'hi' : 'en';
+    i18n.changeLanguage(langCode);
+    
+    setIsPrefsModalOpen(false);
+  };
+
   return (
     <footer className="bg-[#f4f4f4] pt-12 md:pt-16 pb-8 md:pb-12 px-4 mt-auto">
+      {/* ... (existing footer content) */}
       <div className="max-w-[1100px] mx-auto">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-12 md:mb-16">
+          {/* ... (existing footer links) */}
           <div>
-            <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">Products</h4>
+            <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">{t('products')}</h4>
             <ul className="space-y-2 md:space-y-3 text-[#0066cc] text-[13px] md:text-[14px]">
               <li><Link to="/stickers" className="hover:underline">Stickers</Link></li>
               <li><Link to="/labels" className="hover:underline">Labels</Link></li>
@@ -133,7 +178,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-[#333333] mb-4 md:mb-5 text-[14px] md:text-[15px]">Support</h4>
             <ul className="space-y-2 md:space-y-3 text-[#0066cc] text-[13px] md:text-[14px]">
-              <li><a href="#" className="hover:underline">Help</a></li>
+              <li><Link to="/help" className="hover:underline">Help</Link></li>
               <li><Link to="/returns" className="hover:underline">Returns</Link></li>
               <li><a href="#" className="hover:underline">Feedback</a></li>
               <li><button onClick={() => setIsAdminModalOpen(true)} className="hover:underline text-left">Admin Login</button></li>
@@ -159,15 +204,19 @@ export default function Footer() {
               <a href="#" className="hover:text-gray-900"><Instagram className="w-5 h-5" /></a>
               <a href="#" className="hover:text-gray-900"><Youtube className="w-5 h-5" /></a>
             </div>
-            <button className="flex items-center space-x-1.5 hover:text-gray-900 text-[#0066cc]">
-              <img src="https://flagcdn.com/w20/us.png" alt="US Flag" className="w-4 h-auto" />
-              <span>English (EN) $USD</span>
+            <button 
+              onClick={() => setIsPrefsModalOpen(true)}
+              className="flex items-center space-x-1.5 hover:text-gray-900 text-[#0066cc]"
+            >
+              <img src={`https://flagcdn.com/w20/${preferences.flag}.png`} alt="Flag" className="w-4 h-auto" />
+              <span>{preferences.language} ${preferences.currency}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Admin Login Modal */}
+      {/* ... (existing admin modal) */}
       {isAdminModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
@@ -230,6 +279,65 @@ export default function Footer() {
               <p className="text-xs text-gray-400">
                 Authorized personnel only. All access is logged.
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preferences Modal */}
+      {isPrefsModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50 rounded-t-2xl">
+              <h2 className="text-xl font-bold text-[#333333]">Local preferences</h2>
+              <button 
+                onClick={() => setIsPrefsModalOpen(false)}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <div className="flex-1 relative z-50">
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl flex items-center justify-between bg-white text-[15px] hover:border-[#f37021] focus:outline-none focus:ring-2 focus:ring-[#f37021]/20 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    <img src={`https://flagcdn.com/w20/${selectedLang.flag}.png`} alt={selectedLang.flag} className="w-5 h-auto rounded-sm" />
+                    <span className="font-medium">{selectedLang.name}</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isDropdownOpen && (
+                  <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-2xl z-[60] py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="max-h-[40vh] sm:max-h-60 overflow-y-auto custom-scrollbar">
+                      {LANGUAGES.map(lang => (
+                        <button
+                          key={lang.name}
+                          onClick={() => {
+                            setSelectedLang(lang);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`w-full px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 text-[14px] text-left transition-colors ${selectedLang.name === lang.name ? 'bg-orange-50 text-[#f37021]' : 'text-gray-700'}`}
+                        >
+                          <img src={`https://flagcdn.com/w20/${lang.flag}.png`} alt={lang.flag} className="w-5 h-auto rounded-sm" />
+                          <span className={selectedLang.name === lang.name ? 'font-bold' : 'font-medium'}>{lang.name}</span>
+                          {selectedLang.name === lang.name && <Check className="w-4 h-4 ml-auto" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={handleUpdatePrefs}
+                className="bg-[#333333] hover:bg-black text-white px-8 py-3 rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-black/10 active:scale-95"
+              >
+                Update
+              </button>
             </div>
           </div>
         </div>

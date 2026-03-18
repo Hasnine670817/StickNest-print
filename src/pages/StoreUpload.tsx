@@ -264,14 +264,16 @@ export default function StoreUpload() {
 
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">Image URL *</label>
-                      <input 
-                        required
-                        type="url" 
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#f37021] outline-none transition-all"
-                        placeholder="https://example.com/artwork.jpg"
-                      />
+                      <div className="flex flex-col gap-3">
+                        <input 
+                          required
+                          type="url" 
+                          value={formData.image_url}
+                          onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#f37021] outline-none transition-all"
+                          placeholder="https://example.com/artwork.jpg"
+                        />
+                      </div>
                       <p className="text-[11px] text-gray-400 mt-2">
                         Use a high-quality image URL (PNG, JPG, or SVG).
                       </p>

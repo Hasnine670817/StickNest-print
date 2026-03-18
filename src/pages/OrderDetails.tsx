@@ -10,6 +10,8 @@ interface OrderItem {
   quantity: number;
   price: number;
   artwork: string;
+  artwork_status?: string;
+  artwork_rejection_reason?: string;
 }
 
 interface OrderDetails {

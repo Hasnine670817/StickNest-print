@@ -71,9 +71,9 @@ export default function Header() {
                 {/* Caret */}
                 <div className="absolute -top-2 left-8 w-4 h-4 bg-white transform rotate-45 shadow-[-2px_-2px_4px_rgba(0,0,0,0.05)]"></div>
                 
-                <div className="py-2 relative bg-white rounded-lg z-10">
+                <div className="py-2 relative bg-white rounded-lg z-10 px-2">
                   {productCategories.map((cat, idx) => (
-                    <Link key={idx} to={cat.path} className="flex items-center px-5 py-2.5 hover:bg-gray-50 transition-colors" onClick={() => setIsProductsOpen(false)}>
+                    <Link key={idx} to={cat.path} className="flex items-center rounded-lg px-5 py-2.5 hover:bg-[#F3F3F3] transition-colors" onClick={() => setIsProductsOpen(false)}>
                       <img src={cat.icon} alt={cat.name} className="w-10 h-10 mr-4 object-contain drop-shadow-sm rounded-md" />
                       <span className="text-[16px] font-normal text-[#333333]">{cat.name}</span>
                     </Link>

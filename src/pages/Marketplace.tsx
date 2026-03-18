@@ -578,6 +578,7 @@ export default function Marketplace() {
             </div>
           </div>
 
+
           {/* Product Categories Filter (Desktop Only) */}
           <div className="hidden lg:block">
             <h2 className="text-[18px] font-bold text-[#333] mb-2 uppercase tracking-tight">

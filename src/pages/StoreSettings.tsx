@@ -78,6 +78,17 @@ export default function StoreSettings() {
 
       if (updateError) throw updateError;
 
+      // Update all designs with the new logo and store name
+      const { error: designsError } = await supabase
+        .from('marketplace_designs')
+        .update({ 
+          author_avatar: formData.logo_url,
+          author_name: formData.name 
+        })
+        .eq('store_id', storeId);
+
+      if (designsError) throw designsError;
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {

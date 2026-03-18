@@ -12,8 +12,11 @@ interface BlogPost {
   content: string;
   thumbnail_url: string;
   published_at: string;
+  updated_at: string;
   likes_count: number;
   comments_count: number;
+  views_count: number;
+  excerpt?: string;
 }
 
 interface BlogComment {
@@ -89,6 +92,42 @@ export default function BlogDetail() {
 
       if (error) throw error;
       setPost(data);
+
+      // Increment view count
+      if (data) {
+        const newViewsCount = (data.views_count || 0) + 1;
+        
+        // Update total views
+        supabase.from('blogs').update({ views_count: newViewsCount }).eq('id', data.id).then();
+        
+        // Try to increment daily views
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          
+          supabase
+            .from('blog_views_daily')
+            .select('*')
+            .eq('blog_id', data.id)
+            .eq('view_date', today)
+            .maybeSingle()
+            .then(({ data: dailyData }) => {
+              if (dailyData) {
+                supabase
+                  .from('blog_views_daily')
+                  .update({ views_count: dailyData.views_count + 1 })
+                  .eq('id', dailyData.id)
+                  .then();
+              } else {
+                supabase
+                  .from('blog_views_daily')
+                  .insert([{ blog_id: data.id, view_date: today, views_count: 1 }])
+                  .then();
+              }
+            });
+        } catch (e) {
+          // Ignore if table doesn't exist yet
+        }
+      }
 
       // Fetch comments
       if (data) {

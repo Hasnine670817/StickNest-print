@@ -1,9 +1,11 @@
 import React from 'react';
 import { Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function Hero() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <section className="bg-[#f37021] text-white px-4 sm:px-8 py-12 md:py-20 overflow-hidden">
       <div className="max-w-[1100px] mx-auto flex flex-col md:flex-row items-center">
@@ -18,7 +20,7 @@ export default function Hero() {
               Shop now
             </button>
             <button 
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/marketplace')}
               className="bg-[#cc5a1b] hover:bg-[#b85118] text-white px-8 py-3.5 md:px-7 lg:px-8 md:py-2.5 lg:py-3.5 rounded text-lg md:text-base lg:text-lg font-bold transition-colors w-full sm:w-auto"
             >
               Start selling

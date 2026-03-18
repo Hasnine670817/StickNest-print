@@ -53,6 +53,37 @@ export default function AdminMarketplace() {
   const [editingDesign, setEditingDesign] = useState<MarketplaceDesign | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [itemToDelete, setItemToDelete] = useState<MarketplaceDesign | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'image_url' | 'author_avatar') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `marketplace/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+        
+      setDesignForm({ ...designForm, [field]: data.publicUrl });
+      console.log('Upload successful, URL:', data.publicUrl);
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      alert('Error uploading file: ' + (err as Error).message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // New/Edit design form state
   const [designForm, setDesignForm] = useState({
@@ -316,9 +347,9 @@ export default function AdminMarketplace() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10 max-h-[90vh] flex flex-col"
             >
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
                 <h2 className="text-xl font-bold text-gray-900">
                   {isEditModalOpen ? 'Edit Design' : 'Add New Design'}
                 </h2>
@@ -334,7 +365,7 @@ export default function AdminMarketplace() {
                   <XCircle className="w-6 h-6 text-gray-400" />
                 </button>
               </div>
-              <form onSubmit={isEditModalOpen ? handleUpdateDesign : handleAddDesign} className="p-6 space-y-4">
+              <form onSubmit={isEditModalOpen ? handleUpdateDesign : handleAddDesign} className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Design Title</label>
                   <input 
@@ -372,26 +403,45 @@ export default function AdminMarketplace() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Image URL</label>
-                  <input 
-                    required
-                    type="url" 
-                    value={designForm.image_url}
-                    onChange={(e) => setDesignForm({...designForm, image_url: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Design Image</label>
+                  <div className="flex flex-col gap-3">
+                    <input 
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'image_url')}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                    />
+                    {isUploading && <p className="text-sm text-[#f37021]">Uploading...</p>}
+                    <p className="text-xs text-gray-500">Or paste URL:</p>
+                    <input 
+                      required
+                      type="url" 
+                      value={designForm.image_url}
+                      onChange={(e) => setDesignForm({...designForm, image_url: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Author Avatar URL</label>
-                  <input 
-                    required
-                    type="url" 
-                    value={designForm.author_avatar}
-                    onChange={(e) => setDesignForm({...designForm, author_avatar: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
-                    placeholder="https://example.com/avatar.jpg"
-                  />
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Author Avatar</label>
+                  <div className="flex flex-col gap-3">
+                    <input 
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'author_avatar')}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                    />
+                    <p className="text-xs text-gray-500">Or paste URL:</p>
+                    <input 
+                      required
+                      type="url" 
+                      value={designForm.author_avatar}
+                      onChange={(e) => setDesignForm({...designForm, author_avatar: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#f37021] outline-none"
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  </div>
                 </div>
                 <div className="pt-4 flex flex-col sm:flex-row gap-3">
                   <button 
